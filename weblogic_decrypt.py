@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
-weblogic_decrypt.py
-
-Basit araç: SerializedSystemIni.dat + bir {AES} veya {3DES} cipher string verildiğinde
-WebLogic şifrelerini çözer.
-
-Kullanım örneği:
+Usage:
   python3 weblogic_decrypt.py -i /path/to/SerializedSystemIni.dat -s "{AES}jNdVLr..."
   python3 weblogic_decrypt.py -i /path/to/SerializedSystemIni.dat -f /path/to/config.xml
 """
