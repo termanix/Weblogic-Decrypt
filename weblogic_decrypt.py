@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Usage:
-  python3 weblogic_decrypt.py -i /path/to/SerializedSystemIni.dat -s "{AES}jNdVLr..."
+  python3 weblogic_decrypt.py -i /path/to/SerializedSystemIni.dat -s "{AES}jNdVLr...="
   python3 weblogic_decrypt.py -i /path/to/SerializedSystemIni.dat -f /path/to/config.xml
 """
 from Cryptodome.Cipher import ARC2, AES, DES3
@@ -92,12 +92,12 @@ def main():
 
     datas = []
     if options.cipher_string:
-        if options.cipher_string.startswith('{AES}'):
+        if 'AES' in options.cipher_string:
             datas = [(decrypt_AES, None, options.cipher_string.split('}')[1])]
         elif options.cipher_string.startswith('{3DES}'):
             datas = [(decrypt_3DES, None, options.cipher_string.split('}')[1])]
         else:
-            parser.error('Cipher string must start with "{AES}" or "{3DES}"')
+            parser.error('Cipher string needs to include AES or 3DES')
     elif options.config_file:
         if not os.path.isfile(options.config_file):
             parser.error('Config file does not exist')
@@ -108,6 +108,9 @@ def main():
                         if '{AES' in line:
                             aes_value = re.search(r'\{AES[0-9]*\}([A-Za-z0-9+/=]+)', line).group(1)
                             datas.append((decrypt_AES, None, aes_value))
+                        else:
+                            des_value = re.search(r'\{3DES[0-9]*\}([A-Za-z0-9+/=]+)', line).group(1)
+                            datas.append((decrypt_3DES, None, des_value))
         if len(datas) == 0:
             parser.error('No password found in the config file')
     else:
