@@ -7,13 +7,16 @@ Usage:
 from Cryptodome.Cipher import ARC2, AES, DES3
 from Cryptodome.Hash import SHA
 from base64 import b64decode
-import struct, os, functools, sys
+import struct, os, functools
 from optparse import OptionParser
 import re
 
 # helpers
-unpad = lambda s: s[0:-s[-1]]
-ceildiv = lambda n, d: (n + d - 1) // d
+def unpad(s):
+    return s[0:-s[-1]]
+
+def ceildiv(n, d):
+    return (n + d - 1) // d
 
 # constant used by WebLogic implementations
 WEBLOGIC_MASTER_KEY = "0xccb97558940b82637c8bec3c770f86fa3a391a56"
@@ -32,18 +35,18 @@ def PBKDF3(P, S, count, dklen, ivlen, hashmod):
     P = makelen(P, v * ceildiv(len(P), v))
     II = S + P
 
-    def kdf(xlen, id, I):
+    def kdf(xlen, identifier, input_block):
         k = ceildiv(xlen, u)
-        D = (chr(id) * v).encode('utf-8')
+        D = (chr(identifier) * v).encode('utf-8')
         A = []
-        for i in range(1, k+1):
-            Ai = functools.reduce(lambda a,_: hashmod.new(a).digest(), range(count), D + I)
+        for _ in range(1, k + 1):
+            Ai = functools.reduce(lambda a, __: hashmod.new(a).digest(), range(count), D + input_block)
             A.append(Ai)
             # note: this loop mirrors behavior in referenced implementations
-        return b''.join(A)[:xlen], I
+        return b''.join(A)[:xlen], input_block
 
-    key, I = kdf(dklen, 1, II)
-    init, I = (kdf(ivlen, 2, I) if ivlen > 1 else (None, I))
+    key, input_block = kdf(dklen, 1, II)
+    init, input_block = (kdf(ivlen, 2, input_block) if ivlen > 1 else (None, input_block))
     return key, init
 
 def read_ini_file(path):
@@ -134,4 +137,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
